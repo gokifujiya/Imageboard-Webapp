@@ -1,0 +1,11 @@
+/vendor/
+/.env
+/backups/
+node_modules/
+*.log
+*.sql
+*.sql.gz
+
+# uploaded files (keep placeholder)
+public/uploads/*
+!public/uploads/.gitkeep

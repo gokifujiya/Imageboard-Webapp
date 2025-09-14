@@ -1,0 +1,67 @@
+<?php
+<!doctype html>
+<html lang="en">
+    <head>
+        <!-- Required meta tags -->
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" crossorigin="anonymous">
+
+        <title>My Computer Parts Store</title>
+    </head>
+    <body>
+
+        <main class="container mt-5 mb-5">
+            <!-- 内容はここに挿入されます。 -->
+            <div id="content"></div>
+        </main>
+
+        <footer class="bg-light text-center text-lg-start">
+            <div class="text-center p-3" style="background-color: rgba(0, 0, 0, 0.2);">
+                © 2023:
+                <a class="text-dark" href="/">MyComputerPartsStore.com</a>
+            </div>
+        </footer>
+
+        <script>
+            // この関数は、ページがロードされると実行されます。
+            document.addEventListener('DOMContentLoaded', function() {
+                // APIエンドポイントにGETリクエストを送信します。
+                fetch('http://127.0.0.1:8000/api/parts?id=1')
+                    .then(response => response.json()) 
+                    .then(data => {
+                        const part = data.part;
+                        // カードHTMLを作成します。
+                        const html = `
+                            <div class="card" style="width: 18rem;">
+                                <div class="card-body">
+                                    <h5 class="card-title">${part.name}</h5>
+                                    <h6 class="card-subtitle mb-2 text-muted">${part.type} - ${part.brand}</h6>
+                                    <p class="card-text">
+                                        <strong>Model:</strong> ${part.model_number}<br />
+                                        <strong>Release Date:</strong> ${part.release_date}<br />
+                                        <strong>Description:</strong> ${part.description}<br />
+                                        <strong>Performance Score:</strong> ${part.performance_score}<br />
+                                        <strong>Market Price:</strong> $${part.market_price}<br />
+                                        <strong>RSM:</strong> $${part.rsm}<br />
+                                        <strong>Power Consumption:</strong> ${part.power_consumptionw}W<br />
+                                        <strong>Dimensions:</strong> ${part.lengthm}m x ${part.widthm}m x ${part.heightm}m<br />
+                                        <strong>Lifespan:</strong> ${part.lifespan} years<br />
+                                    </p>
+                                    <p class="card-text"><small class="text-muted">Last updated on ${part.updated_at}</small></p>
+                                </div>
+                            </div>`;
+
+                        // カードHTMLをページに挿入します
+                        document.getElementById('content').innerHTML = html;
+                    })
+                    .catch(error => {
+                        console.error('There was an error fetching the data:', error);
+                        document.getElementById('content').innerHTML = '<div class="alert alert-danger">An error occurred while fetching data.</div>';
+                    });
+            });
+        </script>
+    </body>
+</html>

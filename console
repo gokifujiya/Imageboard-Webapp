@@ -1,0 +1,36 @@
+#!/usr/bin/env php
+<?php
+
+// Load Composer autoload so PSR-4 namespaces work (App\, Database\, etc.)
+require __DIR__ . '/vendor/autoload.php';
+
+// Also keep the tiny classmap-less autoloader for Commands\* if you want
+spl_autoload_extensions(".php");
+spl_autoload_register(function($class) {
+    $file = __DIR__ . '/'  . str_replace('\\', '/', $class). '.php';
+    if (file_exists($file)) include($file);
+});
+
+$commands = include __DIR__ . "/Commands/registry.php";
+
+// The 2nd argv is the command name
+$inputCommand = $argv[1] ?? null;
+if (!$inputCommand) {
+    fwrite(STDOUT, "Usage: php console {command} [--options]\n");
+    exit(1);
+}
+
+foreach ($commands as $commandClass) {
+    $alias = $commandClass::getAlias();
+    if($inputCommand === $alias){
+        if(in_array('--help',$argv, true)){
+            fwrite(STDOUT, $commandClass::getHelp());
+            exit(0);
+        }
+        $command = new $commandClass();
+        $result = $command->execute();
+        exit($result);
+    }
+}
+
+fwrite(STDOUT,"Failed to run any commands\n");
