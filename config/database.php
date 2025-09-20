@@ -1,8 +1,8 @@
 <?php
 return [
-  'host' => 'localhost',          // or '127.0.0.1'
-  'user' => 'imgsvc',
-  'pass' => 'ImgSvc_2025!',
-  'name' => 'image_hosting',
+    'host'     => '127.0.0.1',
+    'port'     => 3306,
+    'name'     => 'practice_db',
+    'user'     => 'appuser',
+    'password' => 'ChangeThisStrong!',
 ];
-

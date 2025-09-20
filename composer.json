@@ -7,7 +7,9 @@
     "psr-4": {
       "Database\\": "Database/",
       "Helpers\\": "Helpers/",
-      "Response\\": "Response/"
+      "Response\\": "Response/",
+      "Models\\": "Models/",
+      "Types\\": "Types/"
     }
   }
 }
