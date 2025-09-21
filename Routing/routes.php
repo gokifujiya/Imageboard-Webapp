@@ -94,5 +94,45 @@ return [
 
     // --- keep your other snippet / image routes below unchanged ---
     // ... (paste your existing 'paste', 'api/snippets', 'images/upload', etc. here) ...
+    // DELETE /delete/part
+    'delete/part' => function (): JSONRenderer {
+        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
+            http_response_code(405);
+            return new JSONRenderer(['error' => 'Invalid method']);
+        }
+
+        $id  = (int)($_POST['id'] ?? 0);
+        $dao = new ComputerPartDAOImpl();
+        $ok  = $dao->delete($id);
+
+        return new JSONRenderer([
+            'status'  => $ok ? 'success' : 'error',
+            'message' => $ok ? "Part $id deleted" : "Failed to delete part $id",
+        ]);
+    },
+
+    // GET /parts/all
+    'parts/all' => function (): HTMLRenderer {
+        $dao = new ComputerPartDAOImpl();
+
+        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+        $limit  = isset($_GET['limit'])  ? (int)$_GET['limit']  : 15;
+
+        $parts = $dao->getAll($offset, $limit);
+        return new HTMLRenderer('parts/list', ['parts' => $parts]);
+    },
+
+    // GET /parts/type
+    'parts/type' => function (): HTMLRenderer {
+        $dao = new ComputerPartDAOImpl();
+
+        $type   = $_GET['type'] ?? '';
+        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
+        $limit  = isset($_GET['limit'])  ? (int)$_GET['limit']  : 15;
+
+        $parts = $dao->getAllByType($type, $offset, $limit);
+        return new HTMLRenderer('parts/list', ['parts' => $parts, 'type' => $type]);
+    },
+
 ];
 
