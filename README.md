@@ -14,7 +14,9 @@ A lightweight PHP/MySQL imageboard-style application built from scratch.
    ```bash
    git clone git@github.com:gokifujiya/Imageboard-Webapp.git
    cd Imageboard-Webapp
-2. Copy and edit database config: cp config/database.php.example config/database.php
+2. Copy and edit database config:
+   ```bashcp
+   config/database.php.example config/database.php
 3. Run migrations: php console migrate
 4. Start local server: php -S 127.0.0.1:8000 -t public
 5. http://127.0.0.1:8000/threads
