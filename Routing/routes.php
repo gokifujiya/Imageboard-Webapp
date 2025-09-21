@@ -4,135 +4,47 @@ use Response\HTTPRenderer;
 use Response\Render\HTMLRenderer;
 use Response\Render\JSONRenderer;
 
-use Database\DataAccess\Implementations\ComputerPartDAOImpl; // NEW
-use Models\ComputerPart;                                     // NEW
-use Types\ValueType;                                         // NEW
+use Database\DataAccess\Implementations\ComputerPartDAOImpl;
+use Database\DataAccess\Implementations\PostDAOImpl;
+use Models\ComputerPart;
+use Models\Post;
+use Types\ValueType;
 
 return [
-    // --- Computer parts (DAO) ---
-    'random/part' => function(): HTTPRenderer {
-        $dao  = new ComputerPartDAOImpl();
-        $part = $dao->getRandom();
-        if (!$part) { throw new \Exception('No parts are available!'); }
-        return new HTMLRenderer('component/computer-part-card', ['part' => $part]);
-    },
-
-    'parts' => function(): HTTPRenderer {
-        $id   = ValidationHelper::integer($_GET['id'] ?? null);
-        $dao  = new ComputerPartDAOImpl();
-        $part = $dao->getById($id);
-        if (!$part) { throw new \Exception('Specified part was not found!'); }
-        return new HTMLRenderer('component/computer-part-card', ['part' => $part]);
-    },
-
-    // Form page for create/update
-    'update/part' => function(): HTMLRenderer {
-        $part = null;
-        if (isset($_GET['id'])) {
-            $id   = ValidationHelper::integer($_GET['id']);
-            $dao  = new ComputerPartDAOImpl();
-            $part = $dao->getById($id);
-        }
-        return new HTMLRenderer('component/update-computer-part', ['part' => $part]);
-    },
-
-    // AJAX target: create or update
-    'form/update/part' => function(): HTTPRenderer {
-        try {
-            if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-                throw new \Exception('Invalid request method!');
-            }
-
-            $required_fields = [
-                'name'              => ValueType::STRING,
-                'type'              => ValueType::STRING,
-                'brand'             => ValueType::STRING,
-                'modelNumber'       => ValueType::STRING,
-                'releaseDate'       => ValueType::DATE,
-                'description'       => ValueType::STRING,
-                'performanceScore'  => ValueType::INT,
-                'marketPrice'       => ValueType::FLOAT,
-                'rsm'               => ValueType::FLOAT,
-                'powerConsumptionW' => ValueType::FLOAT,
-                'lengthM'           => ValueType::FLOAT,
-                'widthM'            => ValueType::FLOAT,
-                'heightM'           => ValueType::FLOAT,
-                'lifespan'          => ValueType::INT,
-            ];
-
-            $validated = ValidationHelper::validateFields($required_fields, $_POST);
-            if (isset($_POST['id']) && $_POST['id'] !== '') {
-                $validated['id'] = ValidationHelper::integer($_POST['id']);
-            }
-
-            // Optional: domain constraints (examples)
-            if (!in_array($validated['type'], ['CPU','GPU','Motherboard','RAM','SSD'], true)) {
-                throw new \InvalidArgumentException('Invalid type.');
-            }
-            if ($validated['powerConsumptionW'] < 0 || $validated['powerConsumptionW'] > 400) {
-                throw new \InvalidArgumentException('Power consumption out of range.');
-            }
-
-            $part = new ComputerPart(...$validated);
-            $dao  = new ComputerPartDAOImpl();
-
-            $ok = isset($validated['id'])
-                ? $dao->update($part)
-                : $dao->create($part);
-
-            if (!$ok) throw new \Exception('Database update failed!');
-
-            return new JSONRenderer(['status' => 'success', 'message' => 'Part updated successfully']);
-        } catch (\InvalidArgumentException $e) {
-            error_log($e->getMessage());
-            return new JSONRenderer(['status' => 'error', 'message' => 'Invalid data.']);
-        } catch (\Throwable $e) {
-            error_log($e->getMessage());
-            return new JSONRenderer(['status' => 'error', 'message' => 'An error occurred.']);
-        }
-    },
-
-    // --- keep your other snippet / image routes below unchanged ---
-    // ... (paste your existing 'paste', 'api/snippets', 'images/upload', etc. here) ...
-    // DELETE /delete/part
-    'delete/part' => function (): JSONRenderer {
-        if (($_SERVER['REQUEST_METHOD'] ?? 'GET') !== 'POST') {
-            http_response_code(405);
-            return new JSONRenderer(['error' => 'Invalid method']);
-        }
-
-        $id  = (int)($_POST['id'] ?? 0);
-        $dao = new ComputerPartDAOImpl();
-        $ok  = $dao->delete($id);
-
-        return new JSONRenderer([
-            'status'  => $ok ? 'success' : 'error',
-            'message' => $ok ? "Part $id deleted" : "Failed to delete part $id",
-        ]);
-    },
-
-    // GET /parts/all
+    // ------------------------
+    // Computer Parts
+    // ------------------------
     'parts/all' => function (): HTMLRenderer {
         $dao = new ComputerPartDAOImpl();
-
-        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
-        $limit  = isset($_GET['limit'])  ? (int)$_GET['limit']  : 15;
-
-        $parts = $dao->getAll($offset, $limit);
+        $parts = $dao->getAll(0, 15);
         return new HTMLRenderer('parts/list', ['parts' => $parts]);
     },
 
-    // GET /parts/type
     'parts/type' => function (): HTMLRenderer {
-        $dao = new ComputerPartDAOImpl();
-
-        $type   = $_GET['type'] ?? '';
-        $offset = isset($_GET['offset']) ? (int)$_GET['offset'] : 0;
-        $limit  = isset($_GET['limit'])  ? (int)$_GET['limit']  : 15;
-
-        $parts = $dao->getAllByType($type, $offset, $limit);
+        $dao  = new ComputerPartDAOImpl();
+        $type = $_GET['type'] ?? '';
+        $parts = $dao->getAllByType($type, 0, 15);
         return new HTMLRenderer('parts/list', ['parts' => $parts, 'type' => $type]);
     },
 
+    // ------------------------
+    // Threads (Imageboard)
+    // ------------------------
+    'threads' => function (): HTTPRenderer {
+        $dao = new PostDAOImpl();
+        $threads = $dao->getAllThreads(0, 20);
+        return new HTMLRenderer('threads/list', ['threads' => $threads]);
+    },
+
+    'thread' => function (): HTTPRenderer {
+        $id = (int)($_GET['id'] ?? 0);
+        $dao = new PostDAOImpl();
+        $thread = $dao->getById($id);
+        $replies = $dao->getReplies($thread, 0, 100);
+        return new HTMLRenderer('threads/detail', [
+            'thread'  => $thread,
+            'replies' => $replies
+        ]);
+    },
 ];
 

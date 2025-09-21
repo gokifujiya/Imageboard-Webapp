@@ -1,11 +1,11 @@
 /vendor/
-/.env
-/backups/
-node_modules/
-*.log
-*.sql
-*.sql.gz
-
-# uploaded files (keep placeholder)
-public/uploads/*
-!public/uploads/.gitkeep
+/public/uploads/
+/public/thumbnails/
+/public/images/*        # if you store generated thumbs here
+/publicjsapp.js         # your stray file
+/Viewscomponentupdate-computer-part.php  # stray
+/TypesValueType.php                         # stray
+/HelpersValidationHelper.php                # stray
+config/database.php       # local secrets (keep example file instead)
+.DS_Store
+Thumbs.db
